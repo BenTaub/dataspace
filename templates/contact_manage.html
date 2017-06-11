@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CONTACT MGT</title>
+</head>
+<body>
+     <form action="" method="post">
+         {% if contact_static_id not in form %}
+             <h1>Add Contact</h1>
+         {% else %}
+             <h1>Edit Contact: {{ form.contact_static_id }}</h1>
+         {% endif %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        {% csrf_token %}
+        <input type="submit" value="Add">
+    </form>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contacts</title>
+</head>
+<h1>Dataspace Contacts List</h1>
+    <form action="" method="post">
+        <table>
+            <th>TABLE HEADERS</th>
+                {% for contact in all_contacts %}
+                    <tr>
+                        <td>{{ contact.last_name }}</td>
+                        <td>{{ contact.first_name }}</td>
+                    </tr>
+                {% endfor %}
+    {% comment %}
+            {% for contact in all_contacts %}
+                <tr><td>{{ contact.last_name }}</td></tr>
+            {% endfor %}
+    {% endcomment %}
+        </table>
+        {% csrf_token %}
+        <p></p><p></p>
+        <input type="submit" value="New">
+    </form>
+</body>
+</html>
