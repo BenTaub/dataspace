@@ -6,23 +6,23 @@
 </head>
 <h1>Dataspace Contacts List</h1>
     <form action="" method="post">
+        <input type="submit" value="New">
+        <p></p><p></p>
         <table>
-            <th>TABLE HEADERS</th>
-                {% for contact in all_contacts %}
-                    <tr>
-                        <td>{{ contact.last_name }}</td>
-                        <td>{{ contact.first_name }}</td>
-                    </tr>
+            <tr><th>
+                {% for hdr in col_hdrs %}
+                    <td>{{ hdr }}</td>
                 {% endfor %}
-    {% comment %}
-            {% for contact in all_contacts %}
-                <tr><td>{{ contact.last_name }}</td></tr>
+            </th></tr>
+            {% for this_contact in all_contacts %}
+                <tr>
+                    {% for hdr in col_hdrs %}
+                            <td>{{ this_contact.last_name }}</td>
+                    {% endfor %}
+                </tr>
             {% endfor %}
-    {% endcomment %}
         </table>
         {% csrf_token %}
-        <p></p><p></p>
-        <input type="submit" value="New">
     </form>
 </body>
 </html>

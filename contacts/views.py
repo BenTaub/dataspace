@@ -12,8 +12,10 @@ def contact_list(request):
         return HttpResponseRedirect(redirect_to='/contact/edit')
 
     all_contacts = contacts.models.PersonDynamic.objects.all()
+    all_contacts_fields = contacts.models.PersonDynamic._meta.get_all_field_names()
 
-    return render(request, template_name='contact_list.html', context={'all_contacts': all_contacts})
+    return render(request, template_name='contact_list.html', context={'all_contacts': all_contacts,
+                                                                       'col_hdrs': all_contacts_fields})
 
 
 def contact_add(request):
