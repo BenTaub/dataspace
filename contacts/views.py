@@ -4,16 +4,26 @@ import contacts.models
 from django.http import HttpResponseRedirect
 import datetime
 from django.db import transaction
+from django.db.models.functions import Lower
 import contacts.models
 
 # Create your views here.
-def contact_list(request):
-    if request.method == 'POST':
-        return HttpResponseRedirect(redirect_to='/contact/edit')
+def contact_list(request: object):
+    """
+    Shows the contact_list screen, the first contact screen
+    :param request:
+    :return:
+    """
+    if request.method == 'POST':  # View is called b/c someone hit the 'new' button
+        return HttpResponseRedirect(redirect_to='/contact/edit')  # Go to the edit form
 
-    hdr_fields = ['person_static_id', 'title', 'first_name', 'last_name', 'notes', ]
-    qs_data = contacts.models.PersonDynamic.objects.values_list(*hdr_fields)
-    hdr_fields = ('id', 'TITLE', 'FIRST NAME', 'LAST NAME', 'NOTES')
+    hdr_fields = ['person_static_id', 'title', 'first_name', 'last_name', 'notes', 'effective_date']
+    qs_data = contacts.models.PersonDynamic.objects.values_list(*hdr_fields).order_by(Lower('last_name').desc())
+
+
+    hdr_fields = ('id', 'TITLE', 'FIRST NAME', 'LAST NAME', 'NOTES', 'LAST UPDATE')
+    # BUILD LOGIC TO SAVE SESSION & USE VARIABLES ABOUT CONTACT_LIST SORT ORDER
+    request.session['session_tester'] = 'This is a session variable!'
 
     return render(request, template_name='contact_list.html', context={'all_contacts': qs_data, 'col_hdrs': hdr_fields})
 
