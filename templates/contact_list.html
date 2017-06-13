@@ -9,15 +9,23 @@
         <input type="submit" value="New">
         <p></p><p></p>
         <table>
-            <tr><th>
+            <th><tr>
                 {% for hdr in col_hdrs %}
-                    <td>{{ hdr }}</td>
+                    <td>{{ hdr|upper }}</td>
                 {% endfor %}
-            </th></tr>
+            </tr></th>
             {% for this_contact in all_contacts %}
                 <tr>
-                    {% for hdr in col_hdrs %}
-                            <td>{{ this_contact.last_name }}</td>
+                    {% for this_col in this_contact %}
+                        {% if forloop.counter == 5 %}
+                            {% if this_col|length|get_digit:"-1" > 50 %}
+                                <td>{{ this_col|slice:":50" }}...</td>
+                            {% else %}
+                                <td>{{ this_col }}</td>
+                            {% endif %}
+                        {% else %}
+                            <td>{{ this_col }}</td>
+                        {% endif %}
                     {% endfor %}
                 </tr>
             {% endfor %}

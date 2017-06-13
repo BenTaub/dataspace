@@ -11,11 +11,11 @@ def contact_list(request):
     if request.method == 'POST':
         return HttpResponseRedirect(redirect_to='/contact/edit')
 
-    all_contacts = contacts.models.PersonDynamic.objects.all()
-    all_contacts_fields = contacts.models.PersonDynamic._meta.get_all_field_names()
+    hdr_fields = ['person_static_id', 'title', 'first_name', 'last_name', 'notes', ]
+    qs_data = contacts.models.PersonDynamic.objects.values_list(*hdr_fields)
+    hdr_fields = ('id', 'TITLE', 'FIRST NAME', 'LAST NAME', 'NOTES')
 
-    return render(request, template_name='contact_list.html', context={'all_contacts': all_contacts,
-                                                                       'col_hdrs': all_contacts_fields})
+    return render(request, template_name='contact_list.html', context={'all_contacts': qs_data, 'col_hdrs': hdr_fields})
 
 
 def contact_add(request):
