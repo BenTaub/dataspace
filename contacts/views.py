@@ -14,11 +14,46 @@ def contact_list(request: object):
     :param request:
     :return:
     """
+    def build_col_sort(sort_orders: list):
+        """
+        Creates the sort order portion of the queryset
+        :param sort_orders: A list of the columns to sort
+        :return: str - the order by portion of the queryset call
+        """
+        # TODO: Modify this to allow sorting by multiple columns and in different directions. Can't figure
+        # out how to do this with Django querysets,
+
+        ret_val = "Lower("
+        for this_col in sort_orders:
+            ret_val += "'" + this_col + "',"
+        ret_val = ret_val[:len(ret_val) -1]  # Trim off the last comma
+        ret_val += ")"
+
+        # ret_val = "(Lower('effective_date', 'last_name'))" --> Doesn't work!
+        # ret_val = "(-(Lower('last_name')))" --> Doesn't work!
+        # ret_val = "Lower('effective_date')" --> works
+        # ret_val = "Lower('effective_date').desc()" --> works
+        # ret_val = "Lower('last_name').desc()"  --> This one works!
+        # ret_val = "Lower('last_name').desc(), 'effective_date'" --> doesn't work
+        return ret_val
+
     if request.method == 'POST':  # View is called b/c someone hit the 'new' button
+        #TODO: Add capability to sort by column head, filter, clear filter
         return HttpResponseRedirect(redirect_to='/contact/edit')  # Go to the edit form
 
+    # Put the contact list on the screen
     hdr_fields = ['person_static_id', 'title', 'first_name', 'last_name', 'notes', 'effective_date']
-    qs_data = contacts.models.PersonDynamic.objects.values_list(*hdr_fields).order_by(Lower('last_name').desc())
+    if 'contact_list_sort' not in request.session:
+        request.session['contact_list_sort'] = ['last_name']
+
+    # TODO: REPLACE THIS WITH THE SORT VALUES CHOSEN BY THE USER
+    request.session['contact_list_sort'] = ['last_name']
+
+    qs_data = contacts.models.PersonDynamic.objects.values_list(*hdr_fields).\
+        order_by(eval(build_col_sort(request.session['contact_list_sort'])))
+        # order_by(eval(tmp))
+
+    # qs_data = contacts.models.PersonDynamic.objects.values_list(*hdr_fields).order_by(Lower('last_name').desc(), 'effective_date')
 
 
     hdr_fields = ('id', 'TITLE', 'FIRST NAME', 'LAST NAME', 'NOTES', 'LAST UPDATE')
