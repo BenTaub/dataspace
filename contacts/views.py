@@ -14,53 +14,61 @@ def contact_list(request: object):
     :param request:
     :return:
     """
-    def build_col_sort(sort_orders: list):
-        """
-        Creates the sort order portion of the queryset
-        :param sort_orders: A list of the columns to sort
-        :return: str - the order by portion of the queryset call
-        """
-        # TODO: Modify this to allow sorting by multiple columns and in different directions. Can't figure
-        # out how to do this with Django querysets,
-
-        ret_val = "Lower("
-        for this_col in sort_orders:
-            ret_val += "'" + this_col + "',"
-        ret_val = ret_val[:len(ret_val) -1]  # Trim off the last comma
-        ret_val += ")"
-
-        # ret_val = "(Lower('effective_date', 'last_name'))" --> Doesn't work!
-        # ret_val = "(-(Lower('last_name')))" --> Doesn't work!
-        # ret_val = "Lower('effective_date')" --> works
-        # ret_val = "Lower('effective_date').desc()" --> works
-        # ret_val = "Lower('last_name').desc()"  --> This one works!
-        # ret_val = "Lower('last_name').desc(), 'effective_date'" --> doesn't work
-        return ret_val
-
-    if request.method == 'POST':  # View is called b/c someone hit the 'new' button
-        #TODO: Add capability to sort by column head, filter, clear filter
-        return HttpResponseRedirect(redirect_to='/contact/edit')  # Go to the edit form
-
     # Put the contact list on the screen
-    hdr_fields = ['person_static_id', 'title', 'first_name', 'last_name', 'notes', 'effective_date']
-    if 'contact_list_sort' not in request.session:
-        request.session['contact_list_sort'] = ['last_name']
+    # TODO: Add capability to sort asc or desc by column head
+    # TODO: Add ability to filter the data & clear filters
+    # TODO: Do an if sorted key exists and an if filter value
 
-    # TODO: REPLACE THIS WITH THE SORT VALUES CHOSEN BY THE USER
-    request.session['contact_list_sort'] = ['last_name']
+    if 'contact_list_settings' not in request.session:
+        request.session['contact_list_settings'] = \
+            [{'db_col': 'person_static_id', 'screen_hdr': 'ID'},
+             {'db_col': 'title', 'screen_hdr': 'TITLE'},
+             {'db_col': 'first_name', 'screen_hdr': 'FIRST NAME'},
+             {'db_col': 'last_name', 'screen_hdr': 'LAST NAME', 'sorted': 'Asc'},
+             {'db_col': 'notes', 'screen_hdr': 'NOTES'},
+             {'db_col': 'effective_date', 'screen_hdr': 'AS OF'}]
 
-    qs_data = contacts.models.PersonDynamic.objects.values_list(*hdr_fields).\
-        order_by(eval(build_col_sort(request.session['contact_list_sort'])))
-        # order_by(eval(tmp))
+    if 'btn_sort' in request.GET:
+        # Set new sort & clear old one
+        #TODO: Get rid of the col and just go to len of the request.session dict
+        for ndx in range(len(request.session['contact_list_settings'])):  # Range does not use the highest value!
+            if 'sorted' in request.session['contact_list_settings'][ndx]:  # This column was the last sort
+                if request.session['contact_list_settings'][ndx]['screen_hdr'] == request.GET['btn_sort']:  # Change the sort order
+                    if request.session['contact_list_settings'][ndx]['sorted'] == 'Asc':
+                        request.session['contact_list_settings'][ndx]['sorted'] = 'Desc'
+                    else:
+                        request.session['contact_list_settings'][ndx]['sorted'] = 'Asc'
+                else:  # We're not sorting by this anymore
+                    del request.session['contact_list_settings'][ndx]['sorted']
 
-    # qs_data = contacts.models.PersonDynamic.objects.values_list(*hdr_fields).order_by(Lower('last_name').desc(), 'effective_date')
+            elif request.session['contact_list_settings'][ndx]['screen_hdr'] == request.GET['btn_sort']:  # This is the new col to sort by
+                request.session['contact_list_settings'][ndx]['sorted'] = 'Desc'
 
+    request.session.save()  # Without this we were losing the new sort order
 
-    hdr_fields = ('id', 'TITLE', 'FIRST NAME', 'LAST NAME', 'NOTES', 'LAST UPDATE')
-    # BUILD LOGIC TO SAVE SESSION & USE VARIABLES ABOUT CONTACT_LIST SORT ORDER
-    request.session['session_tester'] = 'This is a session variable!'
+    # list comprehension!
+    db_col_list = [col['db_col'] for col in request.session['contact_list_settings']]
 
-    return render(request, template_name='contact_list.html', context={'all_contacts': qs_data, 'col_hdrs': hdr_fields})
+    # Generator expression to get sort order!
+    db_sort_col_dict = next(db_sort_ord
+                       for db_sort_ord in request.session['contact_list_settings'] if 'sorted' in db_sort_ord)
+    db_sort_col = db_sort_col_dict['db_col']
+    db_sort_ord = db_sort_col_dict['sorted']
+    #TODO: Sorts treat everything as alphanumeric. Change this so they sort ints the right way
+
+    # Query the DB
+    if db_sort_ord == 'Asc':
+        qs_data = contacts.models.PersonDynamic.objects.values_list(*db_col_list).\
+            order_by(Lower(db_sort_col))
+    else:
+        qs_data = contacts.models.PersonDynamic.objects.values_list(*db_col_list).\
+            order_by(Lower(db_sort_col).desc())
+
+    hdr_fields = [col['screen_hdr'] for col in request.session['contact_list_settings']]
+    #TODO: BUILD LOGIC TO SAVE SESSION & USE VARIABLES ABOUT CONTACT_LIST SORT ORDER
+
+    return render(request, template_name='contact_list.html',
+                  context={'all_contacts': qs_data, 'col_meta': request.session['contact_list_settings']})
 
 
 def contact_add(request):

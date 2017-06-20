@@ -5,15 +5,13 @@
     <title>Contacts</title>
 </head>
 <h1>Dataspace Contacts List</h1>
-    <form action="/contact/edit/" method="get">
+    <form action="" method="post">
         <input type="submit" value="New">
-    </form>
-    <form action="/contact/list/" method="get">
         <p></p><p></p>
         <table>
             <th><tr>
-                {% for hdr in col_meta %}
-                    <td><input type="submit" name="btn_sort" value="{{ hdr.screen_hdr }}"></td>
+                {% for hdr in col_hdrs %}
+                    <td>{{ hdr|upper }}</td>
                 {% endfor %}
             </tr></th>
             {% for this_contact in all_contacts %}
