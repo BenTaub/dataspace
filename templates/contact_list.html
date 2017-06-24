@@ -19,7 +19,9 @@
             {% for this_contact in all_contacts %}
                 <tr>
                     {% for this_col in this_contact %}
-                        {% if forloop.counter == 5 %}
+                        {% if forloop.counter == 1 %}
+                            <td><a href="/contact/edit/?id={{ this_col }}" value = {{ this_col }}>{{ this_col }}</a></td>
+                        {% elif forloop.counter == 5 %}
                             {% if this_col|length|get_digit:"-1" > 50 %}
                                 <td>{{ this_col|slice:":50" }}...</td>
                             {% else %}
