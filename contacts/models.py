@@ -12,7 +12,7 @@ class PersonStatic(models.Model):
     effective_date = models.DateTimeField(verbose_name="Record effective date", default=django.utils.timezone.now,
                                           help_text="The date & time on which this record became active")
     end_date = models.DateTimeField(verbose_name="Record end date",
-                                    help_text="The date and time on which this record expired", blank=True)
+                                    help_text="The date and time on which this record expired", blank=True, null=True)
 
 
 class PersonDynamic(models.Model):
@@ -25,12 +25,12 @@ class PersonDynamic(models.Model):
     last_name = models.CharField(verbose_name="Person's last name",
                                  help_text="Last name includes titles such as Phd.", max_length=50)
     notes = models.TextField(help_text="Notes relevant to this person", blank=True)
-    citizenship_status = models.CharField(verbose_name="Citizenship status", default="US Citizen", max_length=50,
-                                          help_text="Information about whether this person is a US citizen or not",
-                                          blank=True)
+    # citizenship_status = models.CharField(verbose_name="Citizenship status", default="US Citizen", max_length=50,
+    #                                       help_text="Information about whether this person is a US citizen or not",
+    #                                       blank=True)
     current_record_fg = models.BooleanField(verbose_name="Current record flag", default=True,
                                       help_text="Set to True for the current version of the record")
     effective_date = models.DateTimeField(verbose_name="Record effective date", default=django.utils.timezone.now,
                                           help_text="The date & time on which this record became active")
     end_date = models.DateTimeField(verbose_name="Record end date",
-                                    help_text="The date and time on which this record expired", blank=True)
+                                    help_text="The date and time on which this record expired", blank=True, null=True)

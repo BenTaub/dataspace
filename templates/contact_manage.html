@@ -15,28 +15,16 @@
              {{  form.as_table }}
          </table>
 
-{#         {% if form.person_static_id not in form %}#}
-{#             <h1>Add Contact</h1>#}
-{#             <table>#}
-{#                 {{ form.as_table }}#}
-{#             </table>#}
-{#         {% else %}#}
-{#             <h1>Edit Contact: {{ form.person_static_id.value }}</h1>#}
-{#             {% for field in form %}#}
-{#                 <table>#}
-{#                     {% if field != form.person_static_id %}#}
-{#                         <p>{{ field.label_tag }} {{ field.value }}</p>#}
-{#                     {% endif %}#}
-{#                 </table>#}
-{#             {% endfor %}#}
-{#         {% endif %}#}
          {% csrf_token %}
          {% if form.person_static_id in form %}
-            <input type="submit" value="Edit">
+            <input type="submit" value="Save Changes">
          {% else %}
             <input type="submit" value="Add">
          {% endif %}
     </form>
+     <a href="/contact/list/">
+         <button>Back To List</button>
+     </a>
 
 </body>
 </html>
