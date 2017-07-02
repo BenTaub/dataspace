@@ -70,43 +70,46 @@ def contact_list(request: object):
 
 def contact_add(request):
     if request.method == 'POST':
-        form = ContactAddForm(request.POST)
+        form = ContactManageForm(request.POST)
         if form.is_valid():
-            form.clean()
-            try:
-                curr_datetime = datetime.datetime.now()
-                with transaction.atomic():  # Starts a transaction
-                    # TODO: Extend PersonDynamic.save with this code
-                    # TODO: Need to drop out if first insert fails + test if xsaction works(what happens to static key?)
-                    if 'person_static_id' not in form.data:  # This is a new contact so create new parent
-                        new_contact_static = contacts.models.PersonStatic(
-                            effective_date=curr_datetime, current_record_fg=True)
-                        new_contact_static.save()
-                        new_contact_dynamic = contacts.models.PersonDynamic (
-                            person_static = new_contact_static, effective_date = curr_datetime,
-                            current_record_fg = True, title = form.data['title'], first_name = form.data['first_name'],
-                            last_name = form.data['last_name'], notes = form.data['notes'])
-                        new_contact_dynamic.save()
-                    else: # We're updating an old record
-                        # Deactivate the old record
-                        old_contact_dynamic = contacts.models.PersonDynamic (
-                            id = form.data['id'])
-                        old_contact_dynamic.end_date = curr_datetime
-                        old_contact_dynamic.current_record_fg = False
-                        old_contact_dynamic.save(update_fields=['end_date', 'current_record_fg'], force_update=True)
-                        # Now insert the new record!!!!
-                        new_contact_dynamic = contacts.models.PersonDynamic (
-                            person_static_id=form.data['person_static_id'], effective_date = curr_datetime,
-                            current_record_fg = True, title = form.data['title'], first_name = form.data['first_name'],
-                            last_name = form.data['last_name'], notes = form.data['notes'])
-                        new_contact_dynamic.save(force_insert=True)
+            if form.has_changed(): # TODO: FIGURE THIS OUT!!!!
+                form.clean()
+                try:
+                    # TODO: Move db code into the models module
+                    curr_datetime = datetime.datetime.now()
+                    with transaction.atomic():  # Starts a transaction
+                        # TODO: Extend PersonDynamic.save with this code
+                        # TODO: Need to drop out if first insert fails + test if xsaction works(what happens to static key?)
+                        if 'person_static_id' not in form.data:  # This is a new contact so create new parent
+                            new_contact_static = contacts.models.PersonStatic(
+                                effective_date=curr_datetime, current_record_fg=True)
+                            new_contact_static.save()
+                            new_contact_dynamic = contacts.models.PersonDynamic (
+                                person_static = new_contact_static, effective_date = curr_datetime,
+                                current_record_fg = True, title = form.data['title'], first_name = form.data['first_name'],
+                                last_name = form.data['last_name'], notes = form.data['notes'])
+                            new_contact_dynamic.save()
+                            # TODO: PROBLEMS HERE!!!!
+                            return HttpResponseRedirect(redirect_to='/contact/edit/?id='+new_contact_static.id)
+                        else: # We're updating an old record
+                            # Deactivate the old record
+                            old_contact_dynamic = contacts.models.PersonDynamic (
+                                id = form.data['id'])
+                            old_contact_dynamic.end_date = curr_datetime
+                            old_contact_dynamic.current_record_fg = False
+                            old_contact_dynamic.save(update_fields=['end_date', 'current_record_fg'], force_update=True)
+                            # Now insert the new record!!!!
+                            new_contact_dynamic = contacts.models.PersonDynamic (
+                                person_static_id=form.data['person_static_id'], effective_date = curr_datetime,
+                                current_record_fg = True, title = form.data['title'], first_name = form.data['first_name'],
+                                last_name = form.data['last_name'], notes = form.data['notes'])
+                            new_contact_dynamic.save(force_insert=True)
+                            # The following ensures that the user doesn't hit enter twice
+                            return HttpResponseRedirect(redirect_to='/contact/edit/?id='+form.data['person_static_id'])
 
-                # The following ensures that the user doesn't hit enter twice
-                # Modify it to redirect to a page that shows the new contact & allows user to add another or go to main list
-                return HttpResponseRedirect('')
-            except Error as db_err:
-                print(str(db_err))
-
+                except Error as db_err:
+                    # TODO: Do something here!!!
+                    print(str(db_err))
         else:
             # TODO: Put error handling code in here!!!
             pass
@@ -114,7 +117,8 @@ def contact_add(request):
         # TODO: NEED TO HANDLE DELETE!!! It should just be setting end dates & removing current record flags
         new_contact_dynamic = contacts.models.PersonDynamic.objects.get(person_static = request.GET['id'],
                                                                         current_record_fg = True)
-        form = ContactManageForm(initial=new_contact_dynamic.__dict__)
+        # form = ContactManageForm(new_contact_dynamic.__dict__)
+        form = ContactManageForm(new_contact_dynamic.__dict__, initial=new_contact_dynamic.__dict__)
 
     else:  # This must be to add a new contact
         form = ContactAddForm()
