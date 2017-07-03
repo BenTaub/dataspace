@@ -19,6 +19,6 @@ import contacts.views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^contact/edit', view=contacts.views.contact_add),
+    url(r'^contact/edit', view=contacts.views.contact_manage),
     url(r'^contact/list', view=contacts.views.contact_list),
 ]
