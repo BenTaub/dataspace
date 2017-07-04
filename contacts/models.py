@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction, Error
 import django.utils.timezone
 import datetime
 
@@ -34,3 +34,25 @@ class PersonDynamic(models.Model):
                                           help_text="The date & time on which this record became active")
     end_date = models.DateTimeField(verbose_name="Record end date",
                                     help_text="The date and time on which this record expired", blank=True, null=True)
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        """
+        Overrides the parent class' save method
+        :param force_insert:
+        :param force_update:
+        :param using:
+        :param update_fields:
+        :return:
+        """
+        curr_datetime = datetime.datetime.now()
+        try:
+            with transaction.atomic():  # Starts a transaction
+                new_contact_static = PersonStatic(
+                    effective_date=curr_datetime, current_record_fg=True)
+                new_contact_static.save()
+                self.person_static = new_contact_static
+                super(PersonDynamic, self).save(self)
+        except Error as db_err:
+            # TODO: Do something here!!!
+            print(str(db_err))
+
