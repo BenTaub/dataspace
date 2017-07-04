@@ -35,7 +35,7 @@ class PersonDynamic(models.Model):
     end_date = models.DateTimeField(verbose_name="Record end date",
                                     help_text="The date and time on which this record expired", blank=True, null=True)
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def create(self, force_insert=False, force_update=False, using=None, update_fields=None):
         """
         Overrides the parent class' save method
         :param force_insert:
@@ -51,7 +51,31 @@ class PersonDynamic(models.Model):
                     effective_date=curr_datetime, current_record_fg=True)
                 new_contact_static.save()
                 self.person_static = new_contact_static
-                super(PersonDynamic, self).save(self)
+                self.save()
+                # super(PersonDynamic, self).save(self)
+        except Error as db_err:
+            # TODO: Do something here!!!
+            print(str(db_err))
+
+    def delete(self, using=None, keep_parents=False):
+        """
+        Overrides the parent class' delete method as all contact deletes will be logical
+        :param using:
+        :param keep_parents:
+        :return:
+        """
+        curr_datetime = datetime.datetime.now()
+        try:
+            with transaction.atomic():  # Starts a transaction
+                # Logically delete the static record
+                self.person_static.end_date = curr_datetime
+                self.person_static.current_record_fg = False
+                self.person_static.save(force_update=True)
+
+                # Logically delete the dynamic record
+                self.end_date = curr_datetime
+                self.current_record_fg = False
+                self.save(force_update=True)
         except Error as db_err:
             # TODO: Do something here!!!
             print(str(db_err))

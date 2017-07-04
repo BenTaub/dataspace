@@ -69,6 +69,11 @@ def contact_list(request: object):
 
 
 def contact_manage(request):
+    """
+    Handles requests to add, view, and manage contacts
+    :param request: A Django request object
+    :return:
+    """
     curr_datetime = datetime.datetime.now()
     if 'id' not in request.GET:  # This is a request for a contact that's not in the DB yet
         if request.method == 'GET':  # This is a request to show a blank entry form
@@ -81,10 +86,9 @@ def contact_manage(request):
                     current_record_fg=True, title=form.data['title'], first_name=form.data['first_name'],
                     last_name=form.data['last_name'], notes=form.data['notes'])
                 # TODO: Handle a failure in next line - try / except?
-                new_contact_dynamic.save()
+                new_contact_dynamic.create()
                 return HttpResponseRedirect(redirect_to='/contact/edit/?id=' +
                                                         str(new_contact_dynamic.person_static.id))
-
             return render(request, 'contact_manage.html', {'form': form})
 
     # We must have received an ID so this is a request to get or update an existing contact
@@ -95,12 +99,19 @@ def contact_manage(request):
         form = ContactManageForm(new_contact_dynamic.__dict__)
         return render(request, 'contact_manage.html', {'form': form})
 
-    # TODO: NEED TO HANDLE DELETE!!! It should just be setting end dates & removing current record flags
-    # Only option left is that this is a request to update an existing contact
     form = ContactManageForm(request.POST, initial=new_contact_dynamic.__dict__)
+
+    #TODO: Rearrange the following lines - you can delete even if the data changed!!!
     if not form.has_changed():
-        #TODO: Check here in request.POST to see if the delete key was hit. If so, delete the contact!!
+        if request.POST.get("delete"):
+            #TODO: Put in some 'are you sure?' code
+            new_contact_dynamic.delete()
+            return HttpResponseRedirect(redirect_to='/contact/list/')
+
+        # Form didn't change so just display it again
         return render(request, 'contact_manage.html', {'form': form})
+
+    # Only option left is that this is a request to update an existing contact
     if form.is_valid():
         form.clean()
         try:
