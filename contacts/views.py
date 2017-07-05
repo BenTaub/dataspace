@@ -74,7 +74,7 @@ def contact_manage(request):
     :param request: A Django request object
     :return:
     """
-    curr_datetime = datetime.datetime.now()
+    # curr_datetime = datetime.datetime.now()
     if 'id' not in request.GET:  # This is a request for a contact that's not in the DB yet
         if request.method == 'GET':  # This is a request to show a blank entry form
             form = ContactAddForm()
@@ -85,7 +85,6 @@ def contact_manage(request):
                 new_contact_dynamic = contacts.models.PersonDynamic(effective_date=curr_datetime,
                     current_record_fg=True, title=form.data['title'], first_name=form.data['first_name'],
                     last_name=form.data['last_name'], notes=form.data['notes'])
-                # TODO: Handle a failure in next line - try / except?
                 new_contact_dynamic.create()
                 return HttpResponseRedirect(redirect_to='/contact/edit/?id=' +
                                                         str(new_contact_dynamic.person_static.id))
@@ -101,13 +100,12 @@ def contact_manage(request):
 
     form = ContactManageForm(request.POST, initial=new_contact_dynamic.__dict__)
 
-    #TODO: Rearrange the following lines - you can delete even if the data changed!!!
-    if not form.has_changed():
-        if request.POST.get("delete"):
-            #TODO: Put in some 'are you sure?' code
-            new_contact_dynamic.delete()
-            return HttpResponseRedirect(redirect_to='/contact/list/')
+    if request.POST.get("delete"):
+        # TODO: Put in some 'are you sure?' code
+        new_contact_dynamic.delete()
+        return HttpResponseRedirect(redirect_to='/contact/list/')
 
+    if not form.has_changed():
         # Form didn't change so just display it again
         return render(request, 'contact_manage.html', {'form': form})
 
@@ -115,27 +113,17 @@ def contact_manage(request):
     if form.is_valid():
         form.clean()
         try:
-            # TODO: Move db code into the models module
-            with transaction.atomic():  # Starts a transaction
-                # TODO: Extend PersonDynamic.save with this code
-                # Deactivate the old record
-                old_contact_dynamic = contacts.models.PersonDynamic (
-                    id = form.data['id'])
-                old_contact_dynamic.end_date = curr_datetime
-                old_contact_dynamic.current_record_fg = False
-                old_contact_dynamic.save(update_fields=['end_date', 'current_record_fg'], force_update=True)
-                # Now insert the new record!!!!
-                new_contact_dynamic = contacts.models.PersonDynamic (
-                    person_static_id=form.data['person_static_id'], effective_date = curr_datetime,
-                    current_record_fg = True, title = form.data['title'], first_name = form.data['first_name'],
-                    last_name = form.data['last_name'], notes = form.data['notes'])
-                new_contact_dynamic.save(force_insert=True)
-                # The following ensures that the user doesn't hit enter twice
-                return HttpResponseRedirect(redirect_to='/contact/edit/?id='+form.data['person_static_id'])
-
-        except Error as db_err:
+            # with transaction.atomic():  # Starts a transaction
+            new_contact_dynamic.title = form.data['title']
+            new_contact_dynamic.first_name = form.data['first_name']
+            new_contact_dynamic.last_name = form.data['last_name']
+            new_contact_dynamic.notes = form.data['notes']
+            new_contact_dynamic.update()
+            # The following ensures that the user doesn't hit enter twice
+            return HttpResponseRedirect(redirect_to='/contact/edit/?id='+form.data['person_static_id'])
+        except:
             # TODO: Do something here!!!
-            print(str(db_err))
+            print("ERROR!")
     else:
         # TODO: Put error handling code in here for a bad form!!!
         pass

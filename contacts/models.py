@@ -74,9 +74,30 @@ class PersonDynamic(models.Model):
 
                 # Logically delete the dynamic record
                 self.end_date = curr_datetime
-                self.current_record_fg = False
+                self.current_record_fg = True
                 self.save(force_update=True)
         except Error as db_err:
             # TODO: Do something here!!!
             print(str(db_err))
 
+    def update(self):
+        """
+        Creates a logical update of a contact record
+        :return:
+        """
+        # Deactivate the old record
+        curr_datetime = datetime.datetime.now()
+        try:
+            with transaction.atomic():
+                self.end_date = curr_datetime
+                self.current_record_fg = False
+                self.save(update_fields=['end_date', 'current_record_fg'], force_update=True)
+                # Now insert the new record!!!!
+                self.current_record_fg = True
+                self.end_date = None
+                self.effective_date = curr_datetime
+                self.id = None
+                self.save(force_insert=True)
+        except Error as db_error:
+            # TODO: Do something here!!!
+            print(str(db_error))
