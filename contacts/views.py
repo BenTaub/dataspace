@@ -1,11 +1,10 @@
 from django.shortcuts import render
-from contacts.forms import ContactManageForm,ContactAddForm
+from contacts.forms import ContactManageForm, ContactAddForm
 import contacts.models
 from django.http import HttpResponseRedirect
-import datetime
-from django.db import transaction, Error
 from django.db.models.functions import Lower
 import contacts.models
+
 
 # Create your views here.
 def contact_list(request: object):
@@ -19,18 +18,19 @@ def contact_list(request: object):
 
     if 'contact_list_settings' not in request.session:
         request.session['contact_list_settings'] = \
-            [{'db_col': 'person_static_id', 'screen_hdr': 'ID'},
-             {'db_col': 'title', 'screen_hdr': 'TITLE'},
-             {'db_col': 'first_name', 'screen_hdr': 'FIRST NAME'},
-             {'db_col': 'last_name', 'screen_hdr': 'LAST NAME', 'sorted': 'Asc'},
-             {'db_col': 'notes', 'screen_hdr': 'NOTES'},
-             {'db_col': 'effective_date', 'screen_hdr': 'AS OF'}]
+            [{'db_col': 'person_static_id', 'screen_hdr': 'ID', 'filter': None},
+             {'db_col': 'title', 'screen_hdr': 'TITLE', 'filter': None},
+             {'db_col': 'first_name', 'screen_hdr': 'FIRST NAME', 'filter': None},
+             {'db_col': 'last_name', 'screen_hdr': 'LAST NAME', 'sorted': 'Asc', 'filter': None},
+             {'db_col': 'notes', 'screen_hdr': 'NOTES', 'filter': None},
+             {'db_col': 'effective_date', 'screen_hdr': 'AS OF', 'filter': None}]
 
     if 'btn_sort' in request.GET:
         # Set new sort & clear old one
         for ndx in range(len(request.session['contact_list_settings'])):  # NOTE: Range does not use the highest value!
             if 'sorted' in request.session['contact_list_settings'][ndx]:  # This column was the last sort
-                if request.session['contact_list_settings'][ndx]['screen_hdr'] == request.GET['btn_sort']:  # Change the sort order
+                # Change the sort order
+                if request.session['contact_list_settings'][ndx]['screen_hdr'] == request.GET['btn_sort']:
                     if request.session['contact_list_settings'][ndx]['sorted'] == 'Asc':
                         request.session['contact_list_settings'][ndx]['sorted'] = 'Desc'
                     else:
@@ -42,14 +42,22 @@ def contact_list(request: object):
             elif request.session['contact_list_settings'][ndx]['screen_hdr'] == request.GET['btn_sort']:
                 request.session['contact_list_settings'][ndx]['sorted'] = 'Desc'
 
+    if 'btn_filter' in request.GET:
+        #TODO: Set the filters in request.GET
+        pass
+
+    if 'btn_clear_filter' in request.GET:
+        #TODO: clear the filters out of the session variables
+        pass
+
     request.session.save()  # Without this we were losing the new sort order
 
     # list comprehension to get the list of db column names!
     db_col_list = [col['db_col'] for col in request.session['contact_list_settings']]
 
     # Generator expression to get sort order!
-    db_sort_col_dict = next(db_sort_ord
-                       for db_sort_ord in request.session['contact_list_settings'] if 'sorted' in db_sort_ord)
+    db_sort_col_dict = next(
+        db_sort_ord for db_sort_ord in request.session['contact_list_settings'] if 'sorted' in db_sort_ord)
     db_sort_col = db_sort_col_dict['db_col']
     db_sort_ord = db_sort_col_dict['sorted']
     # TODO: Sorts treat everything as alphanumeric. Change this so they sort ints the right way

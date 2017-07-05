@@ -1,6 +1,6 @@
 from django import forms
 # from django.forms import ModelForm
-from contacts.models import PersonDynamic
+# from contacts.models import PersonDynamic
 
 
 class ContactManageForm(forms.Form):
@@ -12,16 +12,9 @@ class ContactManageForm(forms.Form):
     last_name = forms.CharField(max_length=50, min_length=1)
     notes = forms.CharField(widget=forms.Textarea, required=False)
 
-    # def __init__(self, *args, **kwargs):
-    #     super(ContactManageForm, self).__init__(*args, **kwargs)
-    #     self.fields['id'].widget = HiddenInput()
-    # TODO: ADD GENDER
-    # citizenship_status = forms.ChoiceField(choices=[(1, 'US Citizen'), (2, 'Other')], label='Citizenship',
-    #                                        initial=2)
 
 class ContactAddForm(ContactManageForm):
     def __init__(self, *args, **kwargs):
         super(ContactManageForm, self).__init__(*args, **kwargs)
         self.fields.pop('person_static_id')
         self.fields.pop('id')
-

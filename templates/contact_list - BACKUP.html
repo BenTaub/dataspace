@@ -10,28 +10,21 @@
     </form>
 <body>
     <hr>
-    <table>
-    <th>
-        <form action="/contact/list/" method="get">
-            <tr>
-                {% for col in col_meta %}
-                    {% if "filter" in col %}
-                        <td><input type="text" name={{ col.db_col }} value={{ col.filter }}></td>
-                    {% else %}
-                        <td><input type="text" name={{ col.db_col }} ></td>
-                    {% endif %}
-                {% endfor %}
-            </tr>
-            <input type="submit" name="btn_filter" value="Filter">
-            <input type="submit" name="btn_clear_filter" value="Clear Filter">
-        </form>
-        <form action="/contact/list/" method="get">
+    <form action="/contact/list/" method="get">
+        <table>
+            <th>
+                <tr>
+                    {% for hdr in col_meta %}
+                        <td><input type="text" name="filter"></td>
+                    {% endfor %}
+                </tr>
+                <input type="submit" name="btn_filter" value="filter">
                 <tr>
                     {% for hdr in col_meta %}
                         <td><input type="submit" name="btn_sort" value="{{ hdr.screen_hdr }}"></td>
                     {% endfor %}
                 </tr>
-    </th>
+            </th>
             {% for this_contact in all_contacts %}
                 <tr>
                     {% for this_col in this_contact %}
