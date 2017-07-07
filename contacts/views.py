@@ -42,9 +42,19 @@ def contact_list(request: object):
             elif request.session['contact_list_settings'][ndx]['screen_hdr'] == request.GET['btn_sort']:
                 request.session['contact_list_settings'][ndx]['sorted'] = 'Desc'
 
+
+    # list comprehension to get the list of db column names!
+    db_col_list = [col['db_col'] for col in request.session['contact_list_settings']]
+
+    # Store the new filter in the session variables
     if 'btn_filter' in request.GET:
-        #TODO: Set the filters in request.GET
-        pass
+        for key in request.GET.keys():
+            # Need filterable_cols because some of the keys aren't actually our fields
+            if request.GET[key] != '' and key in db_col_list:
+                for this_setting in request.session['contact_list_settings']:
+                    if this_setting['db_col'] == key:
+                        this_setting['filter'] = request.GET[key]  # Save filter so it shows on screen & is persistent
+                        break
 
     if 'btn_clear_filter' in request.GET:
         #TODO: clear the filters out of the session variables
@@ -52,23 +62,34 @@ def contact_list(request: object):
 
     request.session.save()  # Without this we were losing the new sort order
 
-    # list comprehension to get the list of db column names!
-    db_col_list = [col['db_col'] for col in request.session['contact_list_settings']]
-
     # Generator expression to get sort order!
+    # TODO: Sorts treat everything as alphanumeric. Change this so they sort ints the right way
     db_sort_col_dict = next(
         db_sort_ord for db_sort_ord in request.session['contact_list_settings'] if 'sorted' in db_sort_ord)
     db_sort_col = db_sort_col_dict['db_col']
     db_sort_ord = db_sort_col_dict['sorted']
-    # TODO: Sorts treat everything as alphanumeric. Change this so they sort ints the right way
+
+    # Build the filter
+    #TODO: THIS IS CRASHING ON THE ID COL, BECAUSE IT'S EXPECTING AN INT - REQUIRE INPUT TO BE INT!!!!
+    qry_filter = {'current_record_fg': True}
+    for col in request.session['contact_list_settings']:
+        if 'filter' in col and col['filter'] != '':
+            qry_filter[col['db_col']] = col['filter']
+
 
     # Query the DB
+    #TODO: build qry_filter from session['contact_list_settings'] so it is persistent on sorting
     if db_sort_ord == 'Asc':
-        qs_data = contacts.models.PersonDynamic.objects.exclude(current_record_fg=False).values_list(*db_col_list).\
+        qs_data = contacts.models.PersonDynamic.objects.filter(**qry_filter).values_list(*db_col_list).\
             order_by(Lower(db_sort_col))
+
+        # qs_data = contacts.models.PersonDynamic.objects.exclude(current_record_fg=False).values_list(*db_col_list).\
+        #     order_by(Lower(db_sort_col))
     else:
-        qs_data = contacts.models.PersonDynamic.objects.exclude(current_record_fg=False).values_list(*db_col_list).\
+        qs_data = contacts.models.PersonDynamic.objects.filter(**qry_filter).values_list(*db_col_list).\
             order_by(Lower(db_sort_col).desc())
+        # qs_data = contacts.models.PersonDynamic.objects.exclude(current_record_fg=False).values_list(*db_col_list).\
+        #     order_by(Lower(db_sort_col).desc())
 
     hdr_fields = [col['screen_hdr'] for col in request.session['contact_list_settings']]
 
