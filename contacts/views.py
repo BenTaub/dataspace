@@ -14,16 +14,14 @@ def contact_list(request: object):
     :return:
     """
     # Put the contact list on the screen
-    # TODO: Add ability to filter the data & clear filters
-
     if 'contact_list_settings' not in request.session:
         request.session['contact_list_settings'] = \
-            [{'db_col': 'person_static_id', 'screen_hdr': 'ID', 'filter': None},
-             {'db_col': 'title', 'screen_hdr': 'TITLE', 'filter': None},
-             {'db_col': 'first_name', 'screen_hdr': 'FIRST NAME', 'filter': None},
-             {'db_col': 'last_name', 'screen_hdr': 'LAST NAME', 'sorted': 'Asc', 'filter': None},
-             {'db_col': 'notes', 'screen_hdr': 'NOTES', 'filter': None},
-             {'db_col': 'effective_date', 'screen_hdr': 'AS OF', 'filter': None}]
+            [{'db_col': 'person_static_id', 'screen_hdr': 'ID'},
+             {'db_col': 'title', 'screen_hdr': 'TITLE'},
+             {'db_col': 'first_name', 'screen_hdr': 'FIRST NAME'},
+             {'db_col': 'last_name', 'screen_hdr': 'LAST NAME', 'sorted': 'Asc'},
+             {'db_col': 'notes', 'screen_hdr': 'NOTES'},
+             {'db_col': 'effective_date', 'screen_hdr': 'AS OF'}]
 
     if 'btn_sort' in request.GET:
         # Set new sort & clear old one
@@ -48,17 +46,17 @@ def contact_list(request: object):
 
     # Store the new filter in the session variables
     if 'btn_filter' in request.GET:
-        for key in request.GET.keys():
-            # Need filterable_cols because some of the keys aren't actually our fields
-            if request.GET[key] != '' and key in db_col_list:
-                for this_setting in request.session['contact_list_settings']:
-                    if this_setting['db_col'] == key:
-                        this_setting['filter'] = request.GET[key]  # Save filter so it shows on screen & is persistent
-                        break
+        # Clear out old filters & put in new ones
+        for session_col in request.session['contact_list_settings']:
+            if 'filter' in session_col:
+                session_col.pop('filter')
+            if session_col['db_col'] in request.GET.keys() and request.GET[session_col['db_col']] != '':
+                session_col['filter'] = request.GET[session_col['db_col']]
 
     if 'btn_clear_filter' in request.GET:
-        #TODO: clear the filters out of the session variables
-        pass
+        for session_col in request.session['contact_list_settings']:
+            if 'filter' in session_col:
+                session_col.pop('filter')
 
     request.session.save()  # Without this we were losing the new sort order
 
@@ -73,23 +71,18 @@ def contact_list(request: object):
     #TODO: THIS IS CRASHING ON THE ID COL, BECAUSE IT'S EXPECTING AN INT - REQUIRE INPUT TO BE INT!!!!
     qry_filter = {'current_record_fg': True}
     for col in request.session['contact_list_settings']:
-        if 'filter' in col and col['filter'] != '':
-            qry_filter[col['db_col']] = col['filter']
-
+        if 'filter' in col and col['filter'] != None:
+            dict_key = col['db_col'] + "__istartswith"
+            qry_filter[dict_key]  = col['filter']
 
     # Query the DB
-    #TODO: build qry_filter from session['contact_list_settings'] so it is persistent on sorting
+    #TODO: change order_by to this, Django syntax: order_by(*fields) --> ignore lowercase issues, it's DB dependent
     if db_sort_ord == 'Asc':
         qs_data = contacts.models.PersonDynamic.objects.filter(**qry_filter).values_list(*db_col_list).\
             order_by(Lower(db_sort_col))
-
-        # qs_data = contacts.models.PersonDynamic.objects.exclude(current_record_fg=False).values_list(*db_col_list).\
-        #     order_by(Lower(db_sort_col))
     else:
         qs_data = contacts.models.PersonDynamic.objects.filter(**qry_filter).values_list(*db_col_list).\
             order_by(Lower(db_sort_col).desc())
-        # qs_data = contacts.models.PersonDynamic.objects.exclude(current_record_fg=False).values_list(*db_col_list).\
-        #     order_by(Lower(db_sort_col).desc())
 
     hdr_fields = [col['screen_hdr'] for col in request.session['contact_list_settings']]
 
