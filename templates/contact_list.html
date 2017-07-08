@@ -16,9 +16,9 @@
             <tr>
                 {% for col in col_meta %}
                     {% if "filter" in col %}
-                        <td><input type="text" name={{ col.db_col }} value={{ col.filter }}></td>
+                        <td><input name={{ col.db_col }} value={{ col.filter }} type="{{ col.type }}"/></td>
                     {% else %}
-                        <td><input type="text" name={{ col.db_col }} ></td>
+                        <td><input name={{ col.db_col }}  type="{{ col.type }}"/></td>
                     {% endif %}
                 {% endfor %}
             </tr>

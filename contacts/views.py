@@ -16,12 +16,12 @@ def contact_list(request: object):
     # Put the contact list on the screen
     if 'contact_list_settings' not in request.session:
         request.session['contact_list_settings'] = \
-            [{'db_col': 'person_static_id', 'screen_hdr': 'ID'},
-             {'db_col': 'title', 'screen_hdr': 'TITLE'},
-             {'db_col': 'first_name', 'screen_hdr': 'FIRST NAME'},
-             {'db_col': 'last_name', 'screen_hdr': 'LAST NAME', 'sorted': 'Asc'},
-             {'db_col': 'notes', 'screen_hdr': 'NOTES'},
-             {'db_col': 'effective_date', 'screen_hdr': 'AS OF'}]
+            [{'db_col': 'person_static_id', 'screen_hdr': 'ID', 'type': 'number'},
+             {'db_col': 'title', 'screen_hdr': 'TITLE', 'type': 'text'},
+             {'db_col': 'first_name', 'screen_hdr': 'FIRST NAME', 'type': 'text'},
+             {'db_col': 'last_name', 'screen_hdr': 'LAST NAME', 'sorted': 'Asc', 'type': 'text'},
+             {'db_col': 'notes', 'screen_hdr': 'NOTES', 'type': 'textarea'},
+             {'db_col': 'effective_date', 'screen_hdr': 'AS OF', 'type': 'date'}]
 
     if 'btn_sort' in request.GET:
         # Set new sort & clear old one
@@ -39,7 +39,6 @@ def contact_list(request: object):
             # This is the new col to sort by
             elif request.session['contact_list_settings'][ndx]['screen_hdr'] == request.GET['btn_sort']:
                 request.session['contact_list_settings'][ndx]['sorted'] = 'Desc'
-
 
     # list comprehension to get the list of db column names!
     db_col_list = [col['db_col'] for col in request.session['contact_list_settings']]
@@ -68,11 +67,15 @@ def contact_list(request: object):
     db_sort_ord = db_sort_col_dict['sorted']
 
     # Build the filter
-    #TODO: THIS IS CRASHING ON THE ID COL, BECAUSE IT'S EXPECTING AN INT - REQUIRE INPUT TO BE INT!!!!
     qry_filter = {'current_record_fg': True}
     for col in request.session['contact_list_settings']:
         if 'filter' in col and col['filter'] != None:
-            dict_key = col['db_col'] + "__istartswith"
+            if col['type'] =='number':
+                dict_key = col['db_col']
+            elif col['type'] == 'date':
+                dict_key = col['db_col'] + "__date"
+            else:
+                dict_key = col['db_col'] + "__istartswith"
             qry_filter[dict_key]  = col['filter']
 
     # Query the DB
@@ -104,8 +107,8 @@ def contact_manage(request):
         else:  # This is a request to put entered data into a new contact
             form = ContactAddForm(request.POST)
             if form.has_changed():  # There actually was data typed into the blank form
-                new_contact_dynamic = contacts.models.PersonDynamic(effective_date=curr_datetime,
-                    current_record_fg=True, title=form.data['title'], first_name=form.data['first_name'],
+                new_contact_dynamic = contacts.models.PersonDynamic(
+                    title=form.data['title'], first_name=form.data['first_name'],
                     last_name=form.data['last_name'], notes=form.data['notes'])
                 new_contact_dynamic.create()
                 return HttpResponseRedirect(redirect_to='/contact/edit/?id=' +
