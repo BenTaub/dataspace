@@ -1,6 +1,6 @@
 from django import forms
-# from django.forms import ModelForm
-# from contacts.models import PersonDynamic
+from django.forms import ModelForm
+from contacts.models import AddrElectronic
 
 
 class ContactManageForm(forms.Form):
@@ -14,7 +14,25 @@ class ContactManageForm(forms.Form):
 
 
 class ContactAddForm(ContactManageForm):
+    """Used when we are adding a new contact"""
     def __init__(self, *args, **kwargs):
         super(ContactManageForm, self).__init__(*args, **kwargs)
         self.fields.pop('person_static_id')
         self.fields.pop('id')
+
+
+class ElectronicAddressManageForm(ModelForm):
+    """Used to add and manage electronic contact addresses"""
+    addr_type = forms.ChoiceField(choices=AddrElectronic._meta.get_field('addr_type').choices)
+    # addr_type = forms.ChoiceField(choices=[('email', 'email'), ('url', 'url')]) --> This works!!!!
+
+    class Meta:
+        model = AddrElectronic
+        fields = ['id', 'person_dynamic', 'name', 'value', 'display_seq']
+        widgets = {'id': forms.HiddenInput, 'person_dynamic': forms.HiddenInput}
+        #TODO: Start by getting this to work!!!
+
+                   # 'addr_type': forms.ChoiceField(choices=AddrElectronic._meta.get_field('addr_type').choices)}
+        # current_record_fg
+        # effective_date =
+        # end_date = models]

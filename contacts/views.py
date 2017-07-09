@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from contacts.forms import ContactManageForm, ContactAddForm
+from contacts.forms import ContactManageForm, ContactAddForm, ElectronicAddressManageForm
 import contacts.models
 from django.http import HttpResponseRedirect
 from django.db.models.functions import Lower
@@ -80,6 +80,7 @@ def contact_list(request: object):
 
     # Query the DB
     #TODO: change order_by to this, Django syntax: order_by(*fields) --> ignore lowercase issues, it's DB dependent
+    #TODO: add top email & ph number to this query from their related tables
     if db_sort_ord == 'Asc':
         qs_data = contacts.models.PersonDynamic.objects.filter(**qry_filter).values_list(*db_col_list).\
             order_by(Lower(db_sort_col))
@@ -87,7 +88,7 @@ def contact_list(request: object):
         qs_data = contacts.models.PersonDynamic.objects.filter(**qry_filter).values_list(*db_col_list).\
             order_by(Lower(db_sort_col).desc())
 
-    hdr_fields = [col['screen_hdr'] for col in request.session['contact_list_settings']]
+    # hdr_fields = [col['screen_hdr'] for col in request.session['contact_list_settings']]
 
     return render(request, template_name='contact_list.html',
                   context={'all_contacts': qs_data, 'col_meta': request.session['contact_list_settings']})
@@ -153,3 +154,9 @@ def contact_manage(request):
         # TODO: Put error handling code in here for a bad form!!!
         pass
     return render(request, 'contact_manage.html', {'form': form})
+
+
+def electronic_addr_manage(request):
+    """Manage email, phone and other, non-physical addresses"""
+    form = ElectronicAddressManageForm
+    return render(request, 'electronic_address_manage.html', {'form': form})

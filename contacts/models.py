@@ -101,3 +101,31 @@ class PersonDynamic(models.Model):
         except Error as db_error:
             # TODO: Do something here!!!
             print(str(db_error))
+
+
+class AddrElectronic(models.Model):
+    """
+    Contains electronic contact addresses, including phone, email, twitter, and user defined mechanisms
+    """
+    # Link to person_dynamic if this is related to a person
+    person_dynamic = models.ForeignKey(to=PersonDynamic, verbose_name="The related contact", blank=True, null=True)
+    #TODO: Add a link to an organization for situations where that fits
+    #TODO: The form should provide the following suggestions in a dropdown which populates this field but also allows the user to just enter what they want here
+    #TODO: If type is email, form logic should validate using class EmailValidator(message=None, code=None, whitelist=None)
+    addr_type = models.TextField(verbose_name='Address Type', help_text='What kind of address - email, phone...',
+                                 choices=[('Email', 'Email'), ('Phone', 'Phone'), ('Twitter', 'Twitter'),
+                                          ('URL', 'URL'), ('Facebook', 'Facebook'), ('Other', 'Other')])
+    name = models.TextField(verbose_name='Address Name', help_text='Name of this address. e.g. home, work...',
+                            blank=True)
+    value = models.TextField(verbose_name='Address', help_text='The actual electronic address')
+    #TODO: Add a way to change display sequences
+    display_seq = models.IntegerField(verbose_name='Display Sequence',
+                              help_text='The order in which this address should appear in lists')
+
+    current_record_fg = models.BooleanField(verbose_name="Current record flag", default=True,
+                                      help_text="Set to True for the current version of the record")
+    effective_date = models.DateTimeField(verbose_name="Record effective date", default=django.utils.timezone.now,
+                                          help_text="The date & time on which this record became active")
+    end_date = models.DateTimeField(verbose_name="Record end date",
+                                    help_text="The date and time on which this record expired", blank=True, null=True)
+
