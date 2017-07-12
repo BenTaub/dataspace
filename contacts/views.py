@@ -3,6 +3,7 @@ from contacts.forms import ContactManageForm, ContactAddForm, ElectronicAddressM
 import contacts.models
 from django.http import HttpResponseRedirect
 from django.db.models.functions import Lower
+from django.forms import formset_factory
 import contacts.models
 
 
@@ -100,63 +101,66 @@ def contact_manage(request):
     :param request: A Django request object
     :return:
     """
-    # curr_datetime = datetime.datetime.now()
     if 'id' not in request.GET:  # This is a request for a contact that's not in the DB yet
-        if request.method == 'GET':  # This is a request to show a blank entry form
-            form = ContactAddForm()
-            return render(request, 'contact_manage.html', {'form': form})
+        if request.method == 'GET':  # This is a request to show a blank entry form_contact
+            form_contact = ContactAddForm()
+            return render(request, 'contact_manage.html', {'form_contact': form_contact})
         else:  # This is a request to put entered data into a new contact
-            form = ContactAddForm(request.POST)
-            if form.has_changed():  # There actually was data typed into the blank form
+            form_contact = ContactAddForm(request.POST)
+            if form_contact.has_changed():  # There actually was data typed into the blank form_contact
                 new_contact_dynamic = contacts.models.PersonDynamic(
-                    title=form.data['title'], first_name=form.data['first_name'],
-                    last_name=form.data['last_name'], notes=form.data['notes'])
+                    title=form_contact.data['title'], first_name=form_contact.data['first_name'],
+                    last_name=form_contact.data['last_name'], notes=form_contact.data['notes'])
                 new_contact_dynamic.create()
                 return HttpResponseRedirect(redirect_to='/contact/edit/?id=' +
                                                         str(new_contact_dynamic.person_static.id))
-            return render(request, 'contact_manage.html', {'form': form})
+            return render(request, 'contact_manage.html', {'form_contact': form_contact})
 
     # We must have received an ID so this is a request to get or update an existing contact
     # TODO: Do we need to handle the possibility that the following doesn't return a record?
     new_contact_dynamic = contacts.models.PersonDynamic.objects.get(person_static=request.GET['id'],
                                                                         current_record_fg=True)
+    qry_filters = {'person_dynamic': request.GET['id'], 'current_record_fg': True}
+    electronic_addresses = contacts.models.AddrElectronic.objects.filter(**qry_filters)
     if request.method == "GET":  # This is a request to show an existing contact
-        form = ContactManageForm(new_contact_dynamic.__dict__)
-        return render(request, 'contact_manage.html', {'form': form})
+        form_contact = ContactManageForm(new_contact_dynamic.__dict__)
+        electronic_addr_formset_class = formset_factory(ElectronicAddressManageForm)
+        electronic_addr_formset = electronic_addr_formset_class(initial=electronic_addresses.values())
+        return render(request, 'contact_manage.html', {'form_contact': form_contact, 'formset_e_addr': electronic_addr_formset})
 
-    form = ContactManageForm(request.POST, initial=new_contact_dynamic.__dict__)
+    form_contact = ContactManageForm(request.POST, initial=new_contact_dynamic.__dict__)
 
     if request.POST.get("delete"):
         # TODO: Put in some 'are you sure?' code
         new_contact_dynamic.delete()
         return HttpResponseRedirect(redirect_to='/contact/list/')
 
-    if not form.has_changed():
+    if not form_contact.has_changed():
         # Form didn't change so just display it again
-        return render(request, 'contact_manage.html', {'form': form})
+        return render(request, 'contact_manage.html', {'form_contact': form_contact})
 
     # Only option left is that this is a request to update an existing contact
-    if form.is_valid():
-        form.clean()
+    if form_contact.is_valid():
+        form_contact.clean()
         try:
-            # with transaction.atomic():  # Starts a transaction
-            new_contact_dynamic.title = form.data['title']
-            new_contact_dynamic.first_name = form.data['first_name']
-            new_contact_dynamic.last_name = form.data['last_name']
-            new_contact_dynamic.notes = form.data['notes']
+            new_contact_dynamic.title = form_contact.data['title']
+            new_contact_dynamic.first_name = form_contact.data['first_name']
+            new_contact_dynamic.last_name = form_contact.data['last_name']
+            new_contact_dynamic.notes = form_contact.data['notes']
             new_contact_dynamic.update()
             # The following ensures that the user doesn't hit enter twice
-            return HttpResponseRedirect(redirect_to='/contact/edit/?id='+form.data['person_static_id'])
+            return HttpResponseRedirect(redirect_to='/contact/edit/?id='+form_contact.data['person_static_id'])
         except:
             # TODO: Do something here!!!
             print("ERROR!")
     else:
-        # TODO: Put error handling code in here for a bad form!!!
+        # TODO: Put error handling code in here for a bad form_contact!!!
         pass
-    return render(request, 'contact_manage.html', {'form': form})
+    return render(request, 'contact_manage.html', {'form_contact': form_contact})
 
 
+#TODO: DELETE ME!
 def electronic_addr_manage(request):
     """Manage email, phone and other, non-physical addresses"""
-    form = ElectronicAddressManageForm
-    return render(request, 'electronic_address_manage.html', {'form': form})
+    electronic_addr_formset = formset_factory(ElectronicAddressManageForm)
+    return render(request, 'electronic_address_manage - DELETE ME.html', {'formset': electronic_addr_formset})

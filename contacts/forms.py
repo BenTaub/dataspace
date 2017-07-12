@@ -24,15 +24,12 @@ class ContactAddForm(ContactManageForm):
 class ElectronicAddressManageForm(ModelForm):
     """Used to add and manage electronic contact addresses"""
     addr_type = forms.ChoiceField(choices=AddrElectronic._meta.get_field('addr_type').choices)
-    # addr_type = forms.ChoiceField(choices=[('email', 'email'), ('url', 'url')]) --> This works!!!!
 
     class Meta:
         model = AddrElectronic
         fields = ['id', 'person_dynamic', 'name', 'value', 'display_seq']
-        widgets = {'id': forms.HiddenInput, 'person_dynamic': forms.HiddenInput}
-        #TODO: Start by getting this to work!!!
-
-                   # 'addr_type': forms.ChoiceField(choices=AddrElectronic._meta.get_field('addr_type').choices)}
+        widgets = {'id': forms.HiddenInput, 'person_dynamic': forms.HiddenInput,
+                   'name': forms.TextInput, 'value': forms.TextInput, 'display_seq': forms.NumberInput}
         # current_record_fg
-        # effective_date =
-        # end_date = models]
+        # effective_date
+        # end_date

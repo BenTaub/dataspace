@@ -115,7 +115,7 @@ class AddrElectronic(models.Model):
     addr_type = models.TextField(verbose_name='Address Type', help_text='What kind of address - email, phone...',
                                  choices=[('Email', 'Email'), ('Phone', 'Phone'), ('Twitter', 'Twitter'),
                                           ('URL', 'URL'), ('Facebook', 'Facebook'), ('Other', 'Other')])
-    name = models.TextField(verbose_name='Address Name', help_text='Name of this address. e.g. home, work...',
+    name = models.TextField(verbose_name='E Address Name', help_text='Name of this address. e.g. home, work...',
                             blank=True)
     value = models.TextField(verbose_name='Address', help_text='The actual electronic address')
     #TODO: Add a way to change display sequences
@@ -128,4 +128,7 @@ class AddrElectronic(models.Model):
                                           help_text="The date & time on which this record became active")
     end_date = models.DateTimeField(verbose_name="Record end date",
                                     help_text="The date and time on which this record expired", blank=True, null=True)
+
+    class Meta:
+        ordering = ['addr_type', 'display_seq']  # Defaults to grouping address types together
 
