@@ -24,7 +24,7 @@
 {#         {% else %}#}
 {#            <input type="submit" value="Add">#}
 {#         {% endif %}#}
-    </form>
+{#    </form>#}
     <p></p>
 {#     ELECTRONIC ADDRESSES SECTION#}
      {{ formset_e_addr.non_form_errors.as_ul }}
@@ -56,7 +56,6 @@
 
      <p></p>
 
-{#BEN - THIS ISN'T WORKING!!!!#}
      {% csrf_token %}
      {% if form_contact.person_static_id in form_contact %}
         <input type="submit" value="Save Changes" name="save">
@@ -66,9 +65,9 @@
      {% endif %}
 
      <hr>
+     </form>
      <a href="/contact/list/">
          <button>Back To List</button>
      </a>
-
 </body>
 </html>
