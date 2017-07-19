@@ -74,7 +74,7 @@ class PersonDynamic(models.Model):
 
                 # Logically delete the dynamic record
                 self.end_date = curr_datetime
-                self.current_record_fg = True
+                self.current_record_fg = False
                 self.save(force_update=True)
         except Error as db_err:
             # TODO: Do something here!!!
@@ -107,8 +107,9 @@ class AddrElectronic(models.Model):
     """
     Contains electronic contact addresses, including phone, email, twitter, and user defined mechanisms
     """
-    # Link to person_dynamic if this is related to a person
-    person_dynamic = models.ForeignKey(to=PersonDynamic, verbose_name="The related contact", blank=True, null=True)
+    # Link to person_static if this is related to a person
+    # person_dynamic = models.ForeignKey(to=PersonDynamic, verbose_name="The related contact", blank=True, null=True)
+    person_static = models.ForeignKey(to=PersonStatic, verbose_name="The related contact", blank=True, null=True)
     #TODO: Add a link to an organization for situations where that fits
     #TODO: The form should provide the following suggestions in a dropdown which populates this field but also allows the user to just enter what they want here
     #TODO: If type is email, form logic should validate using class EmailValidator(message=None, code=None, whitelist=None)

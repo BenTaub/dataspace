@@ -27,8 +27,8 @@ class ElectronicAddressManageForm(ModelForm):
 
     class Meta:
         model = AddrElectronic
-        fields = ['id', 'person_dynamic', 'name', 'value', 'display_seq']
-        widgets = {'id': forms.HiddenInput, 'person_dynamic': forms.HiddenInput,
+        fields = ['id', 'person_static', 'name', 'value', 'display_seq']
+        widgets = {'id': forms.HiddenInput, 'person_static': forms.HiddenInput,
                    'name': forms.TextInput, 'value': forms.TextInput, 'display_seq': forms.NumberInput}
         # current_record_fg
         # effective_date

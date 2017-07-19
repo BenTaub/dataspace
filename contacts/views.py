@@ -104,7 +104,11 @@ def contact_manage(request):
     if 'id' not in request.GET:  # This is a request for a contact that's not in the DB yet
         if request.method == 'GET':  # This is a request to show a blank entry form_contact
             form_contact = ContactAddForm()
-            return render(request, 'contact_manage.html', {'form_contact': form_contact})
+            electronic_addr_formset_class = formset_factory(ElectronicAddressManageForm)
+            electronic_addr_formset = electronic_addr_formset_class(request.POST, prefix='e_addr')
+            return render(request, 'contact_manage.html',
+                          {'form_contact': form_contact, 'formset_e_addr': electronic_addr_formset})
+            # return render(request, 'contact_manage.html', {'form_contact': form_contact})
         else:  # This is a request to put entered data into a new contact
             form_contact = ContactAddForm(request.POST)
             if form_contact.has_changed():  # There actually was data typed into the blank form_contact
@@ -118,18 +122,19 @@ def contact_manage(request):
 
     # We must have received an ID so this is a request to get or update an existing contact
     # TODO: Do we need to handle the possibility that the following doesn't return a record?
-    new_contact_dynamic = contacts.models.PersonDynamic.objects.get(person_static=request.GET['id'],
-                                                                        current_record_fg=True)
-    qry_filters = {'person_dynamic': request.GET['id'], 'current_record_fg': True}
+    qry_filters = {'person_static': request.GET['id'], 'current_record_fg': True}
+    new_contact_dynamic = contacts.models.PersonDynamic.objects.get(**qry_filters)
     electronic_addresses = contacts.models.AddrElectronic.objects.filter(**qry_filters)
     if request.method == "GET":  # This is a request to show an existing contact
         form_contact = ContactManageForm(new_contact_dynamic.__dict__)
         electronic_addr_formset_class = formset_factory(ElectronicAddressManageForm)
-        electronic_addr_formset = electronic_addr_formset_class(initial=electronic_addresses.values())
-        return render(request, 'contact_manage.html', {'form_contact': form_contact, 'formset_e_addr': electronic_addr_formset})
+        electronic_addr_formset = electronic_addr_formset_class(initial=electronic_addresses.values(),
+                                                                prefix='e_addr')
+        return render(request, 'contact_manage.html',
+                      {'form_contact': form_contact, 'formset_e_addr': electronic_addr_formset})
 
     form_contact = ContactManageForm(request.POST, initial=new_contact_dynamic.__dict__)
-
+    #TODO: NEED TO PUT IN STUFF FOR FORM_EADDRESSES
     if request.POST.get("delete"):
         # TODO: Put in some 'are you sure?' code
         new_contact_dynamic.delete()
@@ -159,7 +164,7 @@ def contact_manage(request):
     return render(request, 'contact_manage.html', {'form_contact': form_contact})
 
 
-#TODO: DELETE ME!
+#TODO: DELETE this!
 def electronic_addr_manage(request):
     """Manage email, phone and other, non-physical addresses"""
     electronic_addr_formset = formset_factory(ElectronicAddressManageForm)
