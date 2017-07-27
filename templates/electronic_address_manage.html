@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage An Electronic Address</title>
+    <h1>Electronic Addresses</h1>
+</head>
+<body>
+     {{ formset_e_addr.non_form_errors.as_ul }}
+{#     <form action="" method="post" name="E Contact">#}
+    <table id="form_e_addr" class="form">
+    {% for form in formset_e_addr.forms %}
+      {% if forloop.first %}
+      <thead><tr>
+        {% for field in form.visible_fields %}
+        <th>{{ field.label|capfirst }}</th>
+        {% endfor %}
+      </tr></thead>
+      {% endif %}
+      <tr class="{% cycle row1,row2 %}">
+      {% for field in form.visible_fields %}
+        <td>
+        {# Include the hidden fields in the form #}
+        {% if forloop.first %}
+          {% for hidden in form.hidden_fields %}
+          {{ hidden }}
+          {% endfor %}
+        {% endif %}
+          {{ field.errors.as_ul }}
+          {{ field }}
+        </td>
+      {% endfor %}
+{#         {% csrf_token %}#}
+          <td><button type="submit" value="Add E Contact">+</button></td>
+          <td><button type="submit" value="Delete E Contact">-</button></td>
+      </tr>
+    {% endfor %}
+    </table>
+{#    {{ formset.non_form_errors.as_ul }}#}
+{#    <table id="formset" class="form">#}
+{#    {% for form in formset.forms %}#}
+{#      {% if forloop.first %}#}
+{#      <thead><tr>#}
+{#        {% for field in form.visible_fields %}#}
+{#        <th>{{ field.label|capfirst }}</th>#}
+{#        {% endfor %}#}
+{#      </tr></thead>#}
+{#      {% endif %}#}
+{#      <tr class="{% cycle row1,row2 %}">#}
+{#      {% for field in form.visible_fields %}#}
+{#        <td>#}
+        {# Include the hidden fields in the form #}
+{#        {% if forloop.first %}#}
+{#          {% for hidden in form.hidden_fields %}#}
+{#          {{ hidden }}#}
+{#          {% endfor %}#}
+{#        {% endif %}#}
+{#          {{ field.errors.as_ul }}#}
+{#          {{ field }}#}
+{#        </td>#}
+{#      {% endfor %}#}
+{#      </tr>#}
+{#    {% endfor %}#}
+{#    </table>#}
+</body>
+</html>

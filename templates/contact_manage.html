@@ -20,6 +20,7 @@
 
     <p></p>
 {#     ELECTRONIC ADDRESSES SECTION#}
+{#TODO:     replace this with an include of an e address form#}
      {{ formset_e_addr.non_form_errors.as_ul }}
 {#     <form action="" method="post" name="E Contact">#}
     <table id="form_e_addr" class="form">
@@ -45,8 +46,11 @@
         </td>
       {% endfor %}
 {#         {% csrf_token %}#}
-          <td><button type="submit" value="Add E Contact">+</button></td>
-          <td><button type="submit" value="Delete E Contact">-</button></td>
+          {% if 'person_static_id' not in form.initial %}
+                <td><button type="submit" value="Add E Contact">+</button></td>
+          {% else %}
+                <td><button type="submit" value="Delete E Contact">-</button></td>
+          {% endif %}
       </tr>
     {% endfor %}
     </table>

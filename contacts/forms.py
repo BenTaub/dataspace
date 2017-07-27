@@ -1,6 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from contacts.models import AddrElectronic
+from django.forms import modelformset_factory
 
 
 class ContactManageForm(forms.Form):
@@ -27,9 +28,13 @@ class ElectronicAddressManageForm(ModelForm):
 
     class Meta:
         model = AddrElectronic
-        fields = ['id', 'person_static', 'name', 'value', 'display_seq']
+        fields = ['id', 'person_static', 'name', 'value', 'display_seq', 'addr_type']
         widgets = {'id': forms.HiddenInput, 'person_static': forms.HiddenInput,
                    'name': forms.TextInput, 'value': forms.TextInput, 'display_seq': forms.NumberInput}
-        # current_record_fg
-        # effective_date
-        # end_date
+
+ElectronicAddressFormSet = modelformset_factory(
+    model=AddrElectronic, fields=('id', 'person_static', 'name', 'value', 'display_seq', 'addr_type'),
+    widgets={'id': forms.HiddenInput, 'person_static': forms.HiddenInput,
+             'name': forms.TextInput, 'value': forms.TextInput, 'display_seq': forms.NumberInput,
+             'addr_type':forms.Select(choices=AddrElectronic._meta.get_field('addr_type').choices)
+             })

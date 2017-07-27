@@ -1,9 +1,10 @@
 from django.shortcuts import render
-from contacts.forms import ContactManageForm, ContactAddForm, ElectronicAddressManageForm
+from contacts.forms import ContactManageForm, ContactAddForm, ElectronicAddressManageForm, \
+    ElectronicAddressFormSet, AddrElectronic
 import contacts.models
 from django.http import HttpResponseRedirect
 from django.db.models.functions import Lower
-from django.forms import formset_factory
+from django.forms import formset_factory, ChoiceField
 import contacts.models
 
 
@@ -101,6 +102,7 @@ def contact_manage(request):
     :param request: A Django request object
     :return:
     """
+    #TODO: Need an 'are you sure' if user entered data but then goes to list
     if 'id' not in request.GET:  # This is a request for a contact that's not in the DB yet
         if request.method == 'GET':  # This is a request to show a blank entry form_contact
             form_contact = ContactAddForm()
@@ -120,16 +122,22 @@ def contact_manage(request):
                                                         str(new_contact_dynamic.person_static.id))
             return render(request, 'contact_manage.html', {'form_contact': form_contact})
 
-    # We must have received an ID so this is a request to get or update an existing contact
+    # We must have received an ID so this is a request to get or update or delete an existing contact
     # TODO: Do we need to handle the possibility that the following doesn't return a record?
     qry_filters = {'person_static': request.GET['id'], 'current_record_fg': True}
     new_contact_dynamic = contacts.models.PersonDynamic.objects.get(**qry_filters)
     electronic_addresses = contacts.models.AddrElectronic.objects.filter(**qry_filters)
     if request.method == "GET":  # This is a request to show an existing contact
         form_contact = ContactManageForm(new_contact_dynamic.__dict__)
-        electronic_addr_formset_class = formset_factory(ElectronicAddressManageForm)
-        electronic_addr_formset = electronic_addr_formset_class(initial=electronic_addresses.values(),
-                                                                prefix='e_addr')
+        # electronic_addr_formset_class = formset_factory(ElectronicAddressManageForm)
+        # electronic_addr_formset = electronic_addr_formset_class(initial=electronic_addresses.values(),
+        #                                                         prefix='e_addr')
+
+        electronic_addr_formset = ElectronicAddressFormSet(queryset=electronic_addresses, prefix='e_addr')
+        # electronic_addr_formset = ElectronicAddressFormSet(
+        #     queryset=electronic_addresses,
+        #     initial=[{'addr_type': ChoiceField(choices=AddrElectronic._meta.get_field('addr_type').choices)}])
+
         return render(request, 'contact_manage.html',
                       {'form_contact': form_contact, 'formset_e_addr': electronic_addr_formset})
 
@@ -164,8 +172,10 @@ def contact_manage(request):
     return render(request, 'contact_manage.html', {'form_contact': form_contact})
 
 
-#TODO: DELETE this!
 def electronic_addr_manage(request):
     """Manage email, phone and other, non-physical addresses"""
     electronic_addr_formset = formset_factory(ElectronicAddressManageForm)
-    return render(request, 'electronic_address_manage - DELETE ME.html', {'formset': electronic_addr_formset})
+    # electronic_addr_formset_class = formset_factory(ElectronicAddressManageForm)
+    # electronic_addr_formset = electronic_addr_formset_class(request.POST, prefix='e_addr')
+    # electronic_addr_formset = electronic_addr_formset_class(request.POST, prefix='e_addr')
+    return render(request, 'electronic_address_manage.html', {'formset_e_addr': electronic_addr_formset})
