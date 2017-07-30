@@ -106,11 +106,9 @@ def contact_manage(request):
     if 'id' not in request.GET:  # This is a request for a contact that's not in the DB yet
         if request.method == 'GET':  # This is a request to show a blank entry form_contact
             form_contact = ContactAddForm()
-            electronic_addr_formset_class = formset_factory(ElectronicAddressManageForm)
-            electronic_addr_formset = electronic_addr_formset_class(request.POST, prefix='e_addr')
+            electronic_addr_formset = ElectronicAddressFormSet(prefix='e_addr')
             return render(request, 'contact_manage.html',
                           {'form_contact': form_contact, 'formset_e_addr': electronic_addr_formset})
-            # return render(request, 'contact_manage.html', {'form_contact': form_contact})
         else:  # This is a request to put entered data into a new contact
             form_contact = ContactAddForm(request.POST)
             if form_contact.has_changed():  # There actually was data typed into the blank form_contact
@@ -126,18 +124,10 @@ def contact_manage(request):
     # TODO: Do we need to handle the possibility that the following doesn't return a record?
     qry_filters = {'person_static': request.GET['id'], 'current_record_fg': True}
     new_contact_dynamic = contacts.models.PersonDynamic.objects.get(**qry_filters)
-    electronic_addresses = contacts.models.AddrElectronic.objects.filter(**qry_filters)
+    electronic_addresses = contacts.models.AddrElectronic.objects.filter(**qry_filters).values()
     if request.method == "GET":  # This is a request to show an existing contact
         form_contact = ContactManageForm(new_contact_dynamic.__dict__)
-        # electronic_addr_formset_class = formset_factory(ElectronicAddressManageForm)
-        # electronic_addr_formset = electronic_addr_formset_class(initial=electronic_addresses.values(),
-        #                                                         prefix='e_addr')
-
-        electronic_addr_formset = ElectronicAddressFormSet(queryset=electronic_addresses, prefix='e_addr')
-        # electronic_addr_formset = ElectronicAddressFormSet(
-        #     queryset=electronic_addresses,
-        #     initial=[{'addr_type': ChoiceField(choices=AddrElectronic._meta.get_field('addr_type').choices)}])
-
+        electronic_addr_formset = ElectronicAddressFormSet(initial=electronic_addresses, prefix='e_addr')
         return render(request, 'contact_manage.html',
                       {'form_contact': form_contact, 'formset_e_addr': electronic_addr_formset})
 

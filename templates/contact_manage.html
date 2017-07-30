@@ -22,7 +22,7 @@
 {#     ELECTRONIC ADDRESSES SECTION#}
 {#TODO:     replace this with an include of an e address form#}
      {{ formset_e_addr.non_form_errors.as_ul }}
-{#     <form action="" method="post" name="E Contact">#}
+     <form action="" method="post" name="E Contact">
     <table id="form_e_addr" class="form">
     {% for form in formset_e_addr.forms %}
       {% if forloop.first %}

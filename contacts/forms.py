@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 from contacts.models import AddrElectronic
-from django.forms import modelformset_factory
+from django.forms import modelformset_factory, formset_factory
 
 
 class ContactManageForm(forms.Form):
@@ -32,9 +32,16 @@ class ElectronicAddressManageForm(ModelForm):
         widgets = {'id': forms.HiddenInput, 'person_static': forms.HiddenInput,
                    'name': forms.TextInput, 'value': forms.TextInput, 'display_seq': forms.NumberInput}
 
-ElectronicAddressFormSet = modelformset_factory(
-    model=AddrElectronic, fields=('id', 'person_static', 'name', 'value', 'display_seq', 'addr_type'),
-    widgets={'id': forms.HiddenInput, 'person_static': forms.HiddenInput,
-             'name': forms.TextInput, 'value': forms.TextInput, 'display_seq': forms.NumberInput,
-             'addr_type':forms.Select(choices=AddrElectronic._meta.get_field('addr_type').choices)
-             })
+ElectronicAddressFormSet = formset_factory(ElectronicAddressManageForm, extra=1)
+    # fields=('id', 'person_static', 'name', 'value', 'display_seq', 'addr_type'),
+    # widgets={'id': forms.HiddenInput, 'person_static': forms.HiddenInput,
+    #          'name': forms.TextInput, 'value': forms.TextInput, 'display_seq': forms.NumberInput,
+    #          'addr_type':forms.Select(choices=AddrElectronic._meta.get_field('addr_type').choices)
+    #          })
+
+# ElectronicAddressFormSet = modelformset_factory(
+#     model=AddrElectronic, fields=('id', 'person_static', 'name', 'value', 'display_seq', 'addr_type'),
+#     widgets={'id': forms.HiddenInput, 'person_static': forms.HiddenInput,
+#              'name': forms.TextInput, 'value': forms.TextInput, 'display_seq': forms.NumberInput,
+#              'addr_type':forms.Select(choices=AddrElectronic._meta.get_field('addr_type').choices)
+#              })
